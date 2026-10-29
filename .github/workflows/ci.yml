@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout v7.0.1, released 2026-07-20
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # actions/setup-node v7.1.0, released 2026-10-08
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - name: dist check
+        run: |
+          rm -rf dist
+          npm run build
+          git status --porcelain --untracked-files=all -- dist/
+          test -z "$(git status --porcelain --untracked-files=all -- dist/)"
+      - run: npm test
